@@ -1,7 +1,7 @@
 {
 	"name": "mongostore",
 	"description": "SessionStore for MongoDB",
-	"copyright": "Copyright © 2015, webfreak",
+	"copyright": "Copyright © 2016, webfreak",
 	"authors": ["webfreak"],
 	"license": "public domain",
 	"dependencies":

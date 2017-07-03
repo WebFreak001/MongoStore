@@ -53,13 +53,13 @@ public:
 		return _collection.findOne(["id" : id]).isNull ? Session.init : createSessionInstance(id);
 	}
 
-	void set(string id, string key, Variant value)
+	void set(string id, string key, Variant value) @trusted
 	{
-		_collection.update(["id" : id],
-			Bson(["$set" : Bson(["session." ~ key.makeKey : value.get!Bson])]), UpdateFlags.Upsert);
+		_collection.update(["id" : id], Bson(["$set"
+				: Bson(["session." ~ key.makeKey : value.get!Bson])]), UpdateFlags.Upsert);
 	}
 
-	Variant get(string id, string key, lazy Variant defaultVal)
+	Variant get(string id, string key, lazy Variant defaultVal) @trusted
 	{
 		auto v = _collection.findOne(["id" : id])["session"].tryIndex(key.makeKey);
 		return v.isNull ? defaultVal : Variant(v.get);
@@ -68,7 +68,17 @@ public:
 	bool isKeySet(string id, string key)
 	{
 		return !_collection.findOne(Bson(["id" : Bson(id),
-			"session." ~ key.makeKey : Bson(["$exists" : Bson(true)])])).isNull;
+				"session." ~ key.makeKey : Bson(["$exists" : Bson(true)])])).isNull;
+	}
+
+	void remove(string id, string key)
+	{
+		_collection.update(["id" : id], Bson(["$unset" : Bson("session." ~ key.makeKey)]));
+	}
+
+	int delegate(int delegate(ref string key, ref Variant value)) iterateSession(string id) @safe
+	{
+		assert(false, "Not available for MongoSessionStore");
 	}
 
 	void destroy(string id)
@@ -76,7 +86,16 @@ public:
 		_collection.remove(["id" : id]);
 	}
 
-	int iterateSession(string id, scope int delegate(string key) del)
+	int iterateSession(string id, scope int delegate(string key) @safe del) @trusted
+	{
+		auto v = _collection.findOne(["id" : id]);
+		foreach (string key, _; v["session"])
+			if (auto ret = del(key))
+				return ret;
+		return 0;
+	}
+
+	int iterateSession(string id, scope int delegate(string key) del) @trusted
 	{
 		auto v = _collection.findOne(["id" : id]);
 		foreach (string key, _; v["session"])
@@ -89,7 +108,7 @@ private:
 	MongoCollection _collection;
 }
 
-private string makeKey(string key)
+private string makeKey(string key) @safe
 {
 	if (key.length == 0)
 		return "_";

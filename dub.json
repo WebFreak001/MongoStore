@@ -1,11 +1,11 @@
 {
 	"name": "mongostore",
 	"description": "SessionStore for MongoDB",
-	"copyright": "Copyright © 2016, webfreak",
+	"copyright": "Copyright © 2017, webfreak",
 	"authors": ["webfreak"],
 	"license": "public domain",
 	"dependencies":
 	{
-		"vibe-d": "~>0.7.29-beta.1"
+		"vibe-d": "*"
 	}
 }
